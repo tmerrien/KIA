@@ -1,0 +1,38 @@
+# Levy & Jaeger (2007), with Jaeger (2010): Uniform Information Density (UID) and syntactic reduction
+
+## Citations
+- **Levy, R., & Jaeger, T. F. (2007).** Speakers optimize information density through syntactic reduction. In B. Schölkopf, J. Platt & T. Hofmann (Eds.), *Advances in Neural Information Processing Systems 19* (NIPS 2006), pp. 849-856. MIT Press. Abstract: https://proceedings.neurips.cc/paper/2006/hash/c6a01432c8138d46ba39957a8250e027-Abstract.html. PDF (full text read): https://proceedings.neurips.cc/paper_files/paper/2006/file/c6a01432c8138d46ba39957a8250e027-Paper.pdf
+  - Note: the PDF lists Levy first. The NeurIPS index page lists "T. F. Jaeger, Roger P. Levy". The conference was in 2006 and the proceedings came out in 2007.
+- **Jaeger, T. F. (2010).** Redundancy and reduction: Speakers manage syntactic information density. *Cognitive Psychology*, 61(1), 23-62. doi:10.1016/j.cogpsych.2010.02.002. Open access, PMC2896231: https://pmc.ncbi.nlm.nih.gov/articles/PMC2896231 (read up to about character 200k of 236k: the method, results and general discussion).
+
+## Core claim
+Speakers prefer utterances that spread information, measured as surprisal (-log p), evenly across the signal, with no peaks and no troughs. Where grammar leaves a choice (here, saying or dropping an optional "that"), speakers keep the extra word when the next phrase would otherwise be surprising and drop it when the next phrase is predictable. The redundant word is a "pressure valve". It costs time, but it lowers the density of the information peak that follows.
+
+## Key evidence
+- **NIPS 2007 (relative clauses).** The data are 3,452 non-subject-extracted relative clauses from Switchboard (about 350 speakers). The authors estimated the surprisal of the first word of each relative clause with a trigram model trained on a "pseudo-English" in which every optional relativizer was deleted, which removes circularity. Speakers dropped the relativizer more often when that first word was predictable. Phrasal predictability came from an incremental tree-generation model and was entered into a logistic regression with all known controls and a bootstrap over speakers. It was significant, chi2(1) = 54.3, p < .0001. Structural cues (chi2 = 23.55) and surface n-gram cues (chi2 = 5.28) each made a separate contribution.
+- **Formal argument (NIPS section 2 and appendix).** First, a noisy-channel argument: sending close to channel capacity maximizes rate while it limits errors. Second, a comprehension argument: if processing cost rises superlinearly with surprisal (exponent k > 1), the total cost of an utterance is lowest when information is spread evenly. The authors flag superlinearity itself as untested.
+- **Jaeger 2010 (complement clauses).** The data are 6,716 complement clauses from 346 Switchboard speakers. Only 17.5% contained "that". The information at the clause onset was estimated as -log p(complement clause | matrix verb). It was "the single most important predictor" of keeping "that" (beta = 0.47, z = 16.9, p < .0001; partial Nagelkerke R2 = .05). The result held with controls for availability and production ease (disfluency, speech rate, subject accessibility), dependency length, syntactic persistence and grammaticalization. Ambiguity avoidance had no reliable effect (p > .2).
+- **Scope claims in Jaeger 2010.** The general discussion extends UID as a prediction to case marking, auxiliary contraction, whiz-deletion, object drop, referring-expression choice and word order. Most of these extensions are flagged as untested. The paper leaves open whether UID serves audience design or production ease.
+- **Replication.** Hao & Kaiser (2025, arXiv:2509.05254, to appear at EMNLP 2025) replicated the that-omission effect in a larger modern corpus. They found that the 2010 verb-based measure partly reflects quirks of individual verbs, and that contextual neural-LM estimates explain additional variance.
+
+## Sources it builds on
+- Shannon (1948), information theory and noisy-channel capacity.
+- Aylett & Turk (2004), Smooth Signal Redundancy Hypothesis, *Language and Speech* 47(1): speakers lengthen and stress unpredictable syllables.
+- Genzel & Charniak (2002), Entropy rate constancy in text (ACL); Keller (2004), entropy rate and eye-tracking (EMNLP).
+- Bell et al. (2003): predictability shortens word forms in conversation.
+- Hale (2001) and Levy (2008, "Expectation-based syntactic comprehension"): surprisal predicts processing difficulty.
+- Ferreira & Dell (2000), the availability-based production account (the main rival explanation); Zipf (1935, 1949); Hawkins (2004).
+
+## Works that cite it (influential forward citations)
+- Meister, Pimentel, Haller, Jäger, Cotterell & Levy (2021). Revisiting the Uniform Information Density Hypothesis. EMNLP 2021, 963-980. https://aclanthology.org/2021.emnlp-main.74/ (verified). Uneven surprisal predicts lower acceptability. Reading times are consistent with a slightly superlinear effect of surprisal. The best-fitting form is "regression toward a language-wide mean surprisal", not uniformity within a sentence.
+- Hao & Kaiser (2025), cited above (verified).
+- Gibson et al. (2019, TiCS) already covered in this crawl; it builds on UID.
+- UNVERIFIED (from memory, not opened): Frank & Jaeger (2008), auxiliary contraction and UID, CogSci; Mahowald, Fedorenko, Piantadosi & Gibson (2013), *Cognition* 126, speakers choose the shorter word ("math" over "mathematics") in predictive contexts; Clark, Meister, Pimentel, Hahn, Cotterell, Futrell & Levy (2023), cross-linguistic UID pressure on word order, TACL.
+
+## Relevance to AI answer style
+This work turns the PRECISION vs COMPRESSION distinction into something measurable. Dropping a word is safe only where the reader could already predict what it carried. That is reduction of redundancy, and nothing is lost. Dropping a word where the content is surprising creates an information spike, because one token then carries the onset of a new structure and its content together. Readers handle such spikes badly, so this is lossy compression. Note that the optional words in these studies carry little or no meaning ("that" signals structure), yet speakers still keep them before hard material. A connective or signpost word ahead of a surprising claim therefore helps comprehension: it is not filler. The model also argues against padding. Troughs, meaning stretches of predictable restatement, are inefficient too. The ideal is a steady rate near capacity, not the fewest words. Meister et al. (2021) add that what matters is staying near a typical rate, not equalizing within each sentence. Their acceptability finding is the most direct evidence that uneven density reads as worse text.
+
+## Candidate rules for the harness
+1. **Cut only predictable words.** Delete a word or phrase only if the reader could reconstruct it from context, such as a restated question, an obvious subject or a repeated qualifier. Never delete the word that introduces a new, surprising element. Keep "that", "because", "but" or a short label before a claim the reader would not expect.
+2. **Even out spikes and troughs.** Do not pack a new term, a number and a conclusion into one clause. Split a dense sentence, or put a short signpost before it ("The catch:", "Unlike X,"). Remove stretches that only restate what was just said. Aim for a steady pace of new information, not the shortest possible text.
+3. **Introduce terms before you use them densely.** When a precise but unfamiliar term carries the idea, give it a brief gloss or framing on first use, so its surprisal is spread out. Later uses can then appear bare.
