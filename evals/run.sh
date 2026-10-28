@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Before/after eval: words-per-answer vs. key-term recall, baseline vs. precise style.
-# Usage: [STYLE=path.md] [OUT=results.tsv] evals/run.sh [prompts.jsonl]   Requires: claude CLI, jq.
+# Usage: [STYLE=path.md] [OUT=results.tsv] [ANS=dir] evals/run.sh [prompts.jsonl]   Requires: claude CLI, jq.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 prompts="${1:-$here/prompts.jsonl}"
 style="$(awk 'f>=2; /^---$/{f++}' "${STYLE:-$here/../output-styles/precise.md}")"
 out="${OUT:-$here/results.tsv}"
+ans="${ANS:-}"   # optional dir: save each answer as <id>.<variant>.md
+[ -n "$ans" ] && mkdir -p "$ans"
 printf 'id\tvariant\twords\trecall\n' > "$out"
 
 score() { # $1=answer $2=json array of terms -> "words<TAB>recall"
@@ -22,6 +24,7 @@ while IFS= read -r line; do
   id=$(jq -r .id <<<"$line"); p=$(jq -r .prompt <<<"$line"); terms=$(jq -c .must_include <<<"$line")
   base=$(claude -p "$p")
   prec=$(claude -p --append-system-prompt "$style" "$p")
+  [ -n "$ans" ] && { printf '%s\n' "$base" > "$ans/$id.baseline.md"; printf '%s\n' "$prec" > "$ans/$id.precise.md"; }
   printf '%s\tbaseline\t%s\n' "$id" "$(score "$base" "$terms")" >> "$out"
   printf '%s\tprecise\t%s\n'  "$id" "$(score "$prec" "$terms")" >> "$out"
 done < "$prompts"

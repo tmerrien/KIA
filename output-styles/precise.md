@@ -15,4 +15,6 @@ Answer at maximum information density.
 - One idea per sentence. No synonyms for variety.
 - Full grammar when it carries meaning; fragments only for status.
 - Elaborate only when asked or when omission would mislead.
+- Claim only what you verified: loaded, active, tested, or checked only if observed.
+- Name the unit once before any arithmetic (calendar vs. summed effort, per-item vs. total).
 - Never drop meaning to save words. Precision over brevity.
