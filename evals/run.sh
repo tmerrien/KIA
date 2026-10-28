@@ -22,8 +22,8 @@ score() { # $1=answer $2=json array of terms -> "words<TAB>recall"
 
 while IFS= read -r line; do
   id=$(jq -r .id <<<"$line"); p=$(jq -r .prompt <<<"$line"); terms=$(jq -c .must_include <<<"$line")
-  base=$(claude -p "$p")
-  prec=$(claude -p --append-system-prompt "$style" "$p")
+  base=$(claude -p "$p" </dev/null)
+  prec=$(claude -p --append-system-prompt "$style" "$p" </dev/null)
   [ -n "$ans" ] && { printf '%s\n' "$base" > "$ans/$id.baseline.md"; printf '%s\n' "$prec" > "$ans/$id.precise.md"; }
   printf '%s\tbaseline\t%s\n' "$id" "$(score "$base" "$terms")" >> "$out"
   printf '%s\tprecise\t%s\n'  "$id" "$(score "$prec" "$terms")" >> "$out"
