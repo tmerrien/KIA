@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Before/after eval: words-per-answer vs. key-term recall, baseline vs. precise style.
-# Usage: evals/run.sh [prompts.jsonl]   Requires: claude CLI, jq.
+# Usage: [STYLE=path.md] [OUT=results.tsv] evals/run.sh [prompts.jsonl]   Requires: claude CLI, jq.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 prompts="${1:-$here/prompts.jsonl}"
-style="$(awk 'f>=2; /^---$/{f++}' "$here/../output-styles/precise.md")"
-out="$here/results.tsv"
+style="$(awk 'f>=2; /^---$/{f++}' "${STYLE:-$here/../output-styles/precise.md}")"
+out="${OUT:-$here/results.tsv}"
 printf 'id\tvariant\twords\trecall\n' > "$out"
 
 score() { # $1=answer $2=json array of terms -> "words<TAB>recall"
