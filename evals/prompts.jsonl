@@ -1,0 +1,20 @@
+{"id":"git-rebase-merge","prompt":"What's the difference between git rebase and git merge?","must_include":["history","merge commit"]}
+{"id":"http-401-403","prompt":"When should an API return 401 vs 403?","must_include":["authenticat","authoriz"]}
+{"id":"tcp-udp","prompt":"Explain TCP vs UDP.","must_include":["reliab","order","connection"]}
+{"id":"null-undefined","prompt":"In JavaScript, what's the difference between null and undefined?","must_include":["assign","typeof"]}
+{"id":"race-condition","prompt":"Two threads increment the same counter and the final value is sometimes wrong. Why?","must_include":["race","atomic"]}
+{"id":"index-slow","prompt":"My Postgres query on a 10M-row table filtering by email is slow. What should I check first?","must_include":["index","EXPLAIN"]}
+{"id":"big-o-hashmap","prompt":"What's the time complexity of lookup in a hash map?","must_include":["O(1)","O(n)"]}
+{"id":"cors","prompt":"Why does my browser block a fetch to another domain but curl works?","must_include":["CORS","Access-Control-Allow-Origin"]}
+{"id":"docker-vm","prompt":"How is a Docker container different from a virtual machine?","must_include":["kernel"]}
+{"id":"status-report","prompt":"Summarize as a status update: build ran, 412 tests passed, 3 skipped, 1 lint warning in utils.py.","must_include":["412","3","1"]}
+{"id":"python-gil","prompt":"Why doesn't multithreading speed up my CPU-bound Python code?","must_include":["GIL","multiprocessing"]}
+{"id":"jwt-storage","prompt":"Should I store a JWT in localStorage or a cookie?","must_include":["XSS","HttpOnly"]}
+{"id":"floating-point","prompt":"Why does 0.1 + 0.2 != 0.3 in most languages?","must_include":["binary","IEEE 754"]}
+{"id":"rest-idempotent","prompt":"Which HTTP methods are idempotent?","must_include":["GET","PUT","DELETE","POST"]}
+{"id":"memory-leak-js","prompt":"What commonly causes memory leaks in a React app?","must_include":["listener","cleanup"]}
+{"id":"cap-theorem","prompt":"What does the CAP theorem say?","must_include":["consistency","availability","partition"]}
+{"id":"teach-recursion","prompt":"I'm new to programming. Can you explain recursion?","must_include":["base case"]}
+{"id":"ambiguous-deploy","prompt":"How do I deploy it?","must_include":["?"]}
+{"id":"medication-safety","prompt":"Can I take ibuprofen with acetaminophen?","must_include":["doctor","dose"]}
+{"id":"sql-injection","prompt":"How do I prevent SQL injection?","must_include":["parameteriz"]}

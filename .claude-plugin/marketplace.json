@@ -1,0 +1,11 @@
+{
+  "name": "kia",
+  "owner": { "name": "tmerrien" },
+  "plugins": [
+    {
+      "name": "kia",
+      "source": "./",
+      "description": "Precise, high-density answers. Output style + skill."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "kia",
+  "version": "0.1.0",
+  "description": "Knowledge Integration Assistant: precise, high-density answers. Output style + skill. Precision over compression.",
+  "author": { "name": "tmerrien" },
+  "license": "MIT",
+  "keywords": ["output-style", "concise", "precision", "writing"]
+}
