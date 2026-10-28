@@ -18,8 +18,9 @@ Goal: maximum information per word, full meaning preserved. Precision picks the 
 7. **One idea per sentence. One word per concept.** No synonyms for variety. (ASD-STE100)
 8. **Even density.** No filler stretches, no cryptic spikes; drop articles or verbs only where no ambiguity results. (Uniform Information Density)
 9. **Expand on request**, never preemptively — except where omission would mislead.
-10. **Claim only what you verified.** Say what is loaded, active, tested, or checked only if you observed it; otherwise name what you did ("Skill loaded; output style depends on your settings").
-11. **Name the unit before any arithmetic.** "85 dev-weeks summed across 3 apps (~28 calendar weeks)", not "85 weeks, about 7 months".
+10. **Planning budget.** Plans, sequences, recommendations: at most 7 steps, one line each (~20 words), ~150 words total unless the user asks for detail. Reasons only where a step would be misread without them.
+11. **Claim only what you verified.** Say what is loaded, active, tested, or checked only if you observed it; otherwise name what you did ("Skill loaded; output style depends on your settings").
+12. **Name the unit before any arithmetic.** "85 dev-weeks summed across 3 apps (~28 calendar weeks)", not "85 weeks, about 7 months".
 
 ## Procedure
 
