@@ -57,7 +57,7 @@ export function nextGoal(s: GameState): TechDef | null {
 function defaultView(s: GameState, o: Out): void {
   const sat = bagTotal(s.satchel);
   if (s.sold === 0 && s.earned === 0) {
-    o.add(head('Welcome to Halfmoon Wharf', 'Day one on the docks'));
+    o.add(head('Day one on the docks', 'Halfmoon Wharf'));
     if (sat === 0) o.add(`<p class="hint">Tap the <b>old wreck</b> to salvage scrap, then tap the <b>market stall</b> to sell.</p>`);
     else o.add(`<p class="hint">Good haul. Now tap the <b>market stall</b> to put your ${sat} item${sat > 1 ? 's' : ''} on the shelf. Crews from the pier will buy them.</p>`);
     o.add(`<div class="row">${bagChips(s.satchel, '')}</div>`);
@@ -70,7 +70,7 @@ function defaultView(s: GameState, o: Out): void {
     const need = sim.siteNeeds(s, g.build);
     o.add(head(`Building: ${g.name}`, 'Construction site'));
     o.add(`<p class="hint">Hold the site to pour coins${need && bagTotal(need.items) ? ', and bring the materials it still needs' : ''}.</p>`);
-    o.add(`<div class="row">${need ? coinChip(fmt(need.coinsLeft) + ' left') + bagChips(need.items, '') : ''}</div>`);
+    o.add(`<div class="row">${need ? coinChip(fmt(Math.ceil(need.coinsLeft)) + ' left') + bagChips(need.items, '') : ''}</div>`);
     o.add(`<div class="row"><button class="btn" data-act="goto:${g.build}">${icon('arrow')}Go to site</button><button class="btn ghost" data-act="tech">Tech tree</button></div>`);
     return;
   }
@@ -131,7 +131,7 @@ function buildingView(s: GameState, id: BuildingId, o: Out): void {
     const t = techForBuilding(id);
     if (need && t) {
       o.add(head(`${b.name} site`, 'Under construction'));
-      const poured = t.cost - need.coinsLeft;
+      const poured = t.cost - Math.ceil(need.coinsLeft);
       o.add(`<div class="row"><span class="stat">${coinGlyph(14)} <b class="num">${fmt(poured)}</b> / ${fmt(t.cost)}</span></div>`);
       o.bar(t.cost ? poured / t.cost : 1, 'gold');
       const items = t.items ?? {};
@@ -171,7 +171,7 @@ function buildingView(s: GameState, id: BuildingId, o: Out): void {
       o.add(`<div class="row recipe">${Object.keys(r.in).map(k => chip(k, `×${r.in[k]}`)).join('<span class="plus">+</span>')}<span class="to">${icon('arrow')}</span>${chip(r.out, '×1')}</div>`);
       if (ws) {
         o.add(`<div class="row wrap"><span class="stat">Loaded</span>${Object.keys(r.in).map(k => chip(k, `${ws.input[k] ?? 0}/${TUNING.workshopInputCap}`, (ws.input[k] ?? 0) >= r.in[k] ? 'ok' : 'short')).join('')}<span class="stat">Ready <b class="num">${ws.output}</b></span></div>`);
-        o.bar(ws.busy ? workshopFrac(ws.progress, r.time / speed) : 0, ws.busy ? '' : 'idle');
+        o.bar(ws.busy ? workshopFrac(ws.progress, r.time) : 0, ws.busy ? '' : 'idle');
         o.add(`<p class="muted small">${ws.busy ? 'Working.' : ws.output >= TUNING.workshopOutputCap ? 'Output full. Collect it.' : 'Idle: needs inputs.'} ${runBy(s)}.</p>`);
       }
       return;

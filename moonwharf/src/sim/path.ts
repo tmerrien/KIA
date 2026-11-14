@@ -183,3 +183,12 @@ export function distance(m: { x: number; y: number }, r: Rect): number {
   const cy = Math.max(r.y, Math.min(m.y, r.y + r.h - 1));
   return Math.abs(m.x - cx) + Math.abs(m.y - cy);
 }
+
+/** The player is standing still on a tile from which `ref` can be used. */
+export function isAdjacent(s: GameState, ref: Ref): boolean {
+  const p = s.player;
+  if (p.path.length) return false;
+  const [tx, ty] = tileOf(p);
+  if (p.x !== tx || p.y !== ty) return false;
+  return tileServes(s, ref, tx, ty);
+}

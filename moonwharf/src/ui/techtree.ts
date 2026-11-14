@@ -17,7 +17,7 @@ export function techView(s: GameState): string {
     const nodes = TECH.filter(t => t.era === e.n);
     const owned = nodes.filter(t => sim.techStatus(s, t.id) === 'owned').length;
     h += `<section class="era ${e.n === cur ? 'cur' : ''} ${e.n > cur + 1 ? 'far' : ''}" aria-labelledby="era${e.n}">`;
-    h += `<header><h3 id="era${e.n}"><span class="rn">Era ${roman(e.n)}</span> ${esc(e.name)}</h3><p>${esc(e.tagline)} <span class="num">· ${owned}/${nodes.length}</span></p></header><div class="cards">`;
+    h += `<header><h3 id="era${e.n}"><span class="rn">Era ${roman(e.n)}</span> · ${esc(e.name)}</h3><p>${esc(e.tagline)} <span class="num">· ${owned}/${nodes.length}</span></p></header><div class="cards">`;
     for (const t of nodes) {
       const st = sim.techStatus(s, t.id);
       const afford = sim.canAfford(s, t.cost, t.items ?? {});
@@ -38,7 +38,7 @@ export function techView(s: GameState): string {
           ? `<button class="btn" data-act="mark:${t.id}" aria-label="Mark site for ${esc(t.name)}">Mark site</button>`
           : `<button class="btn" data-act="buy:${t.id}" ${afford ? '' : 'disabled'} aria-label="Buy ${esc(t.name)}">Buy</button>`;
       } else status = `<span class="st locked">${icon('lock', 14)}${missing.length ? `Needs ${esc(missing.join(', '))}` : 'Locked'}</span>`;
-      h += `<article class="card ${st}${st === 'available' && afford ? ' afford' : ''}"><div class="ct"><h4>${esc(t.name)}</h4>${status}</div><p>${esc(t.desc)}${t.build ? ' <i>Build on site: costs are poured and delivered there.</i>' : ''}</p><div class="cost">${cost}</div>${btn ? `<div class="act">${btn}</div>` : ''}</article>`;
+      h += `<article class="card ${st}${st === 'available' && afford ? ' afford' : ''}"><div class="ct"><h4>${esc(t.name)}</h4>${status}</div><p>${esc(t.desc)}${t.build ? ' <i>Pay on site.</i>' : ''}</p><div class="foot"><div class="cost">${cost}</div>${btn ? `<div class="act">${btn}</div>` : ''}</div></article>`;
     }
     h += `</div></section>`;
   }

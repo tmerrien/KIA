@@ -29,7 +29,7 @@ export interface Workshop { input: Bag; output: number; busy: boolean; progress:
 export interface Site { coins: number; items: Bag }   // construction in progress, keyed by building id
 
 export interface Mover {           // anything that walks: player, helpers, crews
-  x: number; y: number;            // tile coords, float while moving
+  x: number; y: number;            // tile coords, float while moving; integer (x,y) = standing on the center of tile (x,y)
   path: [number, number][];        // remaining waypoints (tile centers), excluding current
   dir: 1 | -1;                     // facing for render
   walkT: number;                   // seconds spent walking, for animation
@@ -44,7 +44,13 @@ export interface Helper extends Mover {
   id: number; kind: 'dockhand' | 'porter'; carry: Bag;
   task: string;                    // short human text for UI ("Mining ore", "Idle")
   action: { t: number; d: number } | null;
+  job?: HelperJob | null;          // sim-internal: current job (render/UI should use `task`)
 }
+
+// Sim-internal helper job: a claim key (so two helpers never take the same job) and steps to walk through.
+export type HelperOp = 'gather' | 'deposit' | 'takeOutput' | 'shelf' | 'take' | 'load';
+export interface HelperStep { ref: Ref; op: HelperOp; item?: ItemId; n?: number }
+export interface HelperJob { claim: string; steps: HelperStep[] }
 
 export interface Crew extends Mover {
   id: number; state: 'arriving' | 'shopping' | 'leaving'; wait: number;

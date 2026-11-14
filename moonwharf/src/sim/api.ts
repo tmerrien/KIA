@@ -26,32 +26,34 @@
 //   the fleet; every ship pays fleetVoyageIncome * fleetIncome effect each fleetVoyageSeconds.
 // - Offline: on load the UI calls catchUp(state, seconds) which sells shelf stock at the customer rate,
 //   regrows nodes and pays fleet voyages, capped at offlineCapSeconds.
-import type { GameState, GameEvent, Ref, ItemId, TechId, BuildingId, Bag } from './types';
 export type { GameState, GameEvent, Ref } from './types';
 
-export declare function newGame(seed?: number): GameState;
-export declare function tick(s: GameState, dt: number): GameEvent[];          // dt seconds, caller clamps to <=0.1
-export declare function catchUp(s: GameState, seconds: number): GameEvent[];
-
+// Signatures (implemented in the modules re-exported below):
+//   newGame(seed?: number): GameState
+//   tick(s, dt): GameEvent[]                          dt seconds, caller clamps to <=0.1
+//   catchUp(s, seconds): GameEvent[]
 // player commands
-export declare function orderPlayer(s: GameState, ref: Ref): GameEvent[];     // returns toast if unreachable
-export declare function pour(s: GameState, building: BuildingId, holdSeconds: number, dt: number): GameEvent[]; // call each frame while held
-export declare function buyTech(s: GameState, id: TechId): GameEvent[];
-export declare function takeFromWarehouse(s: GameState, item: ItemId, n: number): GameEvent[]; // player must be adjacent
-export declare function fulfillContract(s: GameState, contractId: number): GameEvent[];
-
+//   orderPlayer(s, ref): GameEvent[]                  returns toast if unreachable
+//   pour(s, building, holdSeconds, dt): GameEvent[]   call each frame while held
+//   buyTech(s, id): GameEvent[]
+//   takeFromWarehouse(s, item, n): GameEvent[]        player must be adjacent
+//   fulfillContract(s, contractId): GameEvent[]
 // queries (pure)
-export declare function era(s: GameState): number;                            // 1..5, max era of owned tech (min 1)
-export declare function carryCap(s: GameState): number;
-export declare function shelfCap(s: GameState): number;
-export declare function techStatus(s: GameState, id: TechId): 'owned' | 'site' | 'available' | 'locked';
-export declare function canAfford(s: GameState, coins: number, items: Bag): boolean; // satchel + warehouse
-export declare function siteNeeds(s: GameState, b: BuildingId): { coinsLeft: number; items: Bag } | null;
-export declare function refAt(s: GameState, x: number, y: number): Ref;       // tile -> node/building/tile
-export declare function isWalkable(s: GameState, x: number, y: number): boolean;
-export declare function isAdjacent(s: GameState, ref: Ref): boolean;          // player stands next to ref
-export declare function footprint(s: GameState, ref: Ref): { x: number; y: number; w: number; h: number };
-
+//   era(s): number                                    1..5, max era of owned tech (min 1)
+//   carryCap(s), shelfCap(s): number
+//   techStatus(s, id): 'owned' | 'site' | 'available' | 'locked'
+//   canAfford(s, coins, items): boolean               satchel + warehouse
+//   siteNeeds(s, b): { coinsLeft; items } | null
+//   refAt(s, x, y): Ref                               tile -> node/building/tile
+//   isWalkable(s, x, y): boolean
+//   isAdjacent(s, ref): boolean                       player stands next to ref
+//   footprint(s, ref): { x; y; w; h }
 // persistence
-export declare function serialize(s: GameState): string;
-export declare function deserialize(json: string): GameState | null;          // null if invalid/old version
+//   serialize(s): string
+//   deserialize(json): GameState | null               null if invalid/old version
+export { newGame, tick, catchUp } from './state';
+export { orderPlayer } from './player';
+export { pour, buyTech, takeFromWarehouse, fulfillContract, siteNeeds } from './economy';
+export { era, carryCap, shelfCap, techStatus, canAfford } from './effects';
+export { refAt, isWalkable, isAdjacent, footprint } from './path';
+export { serialize, deserialize } from './persistence';

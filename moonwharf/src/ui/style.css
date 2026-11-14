@@ -91,7 +91,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--amber)
   border-top: 3px solid var(--brass); box-shadow: 0 -6px 18px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 210, 140, .25); }
 #panel-inner { height: 100%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch;
   padding: 10px calc(var(--sar) + 14px) 10px calc(var(--sal) + 14px); max-width: 680px; margin: 0 auto; }
-.ph { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.ph { display: flex; align-items: baseline; min-width: 0; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
 .ph h2 { margin: 0; font: 800 19px/1.15 var(--display); color: var(--brass-hi); text-shadow: 0 1px 0 #000; letter-spacing: .01em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ph .sub { color: var(--muted); font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
@@ -166,8 +166,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--amber)
 .card h4 { margin: 0; font: 700 16px/1.2 var(--display); color: var(--brass-hi); }
 .card p { margin: 4px 0 8px; font-size: 14px; color: var(--parch); }
 .card p i { color: var(--muted); font-style: normal; font-size: 13px; }
-.card .cost { display: flex; flex-wrap: wrap; gap: 5px; }
-.card .act { margin-top: 8px; display: flex; justify-content: flex-end; }
+.card .cost { display: flex; flex-wrap: wrap; gap: 5px; min-height: 40px; align-items: center; }
+.card .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.card .act { flex: none; display: flex; }
 .st { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
 .st.owned { color: var(--ok); }
 .st.site { color: var(--amber); }
