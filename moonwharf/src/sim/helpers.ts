@@ -263,10 +263,12 @@ function arrive(s: GameState, h: Helper, ev: GameEvent[]): void {
       break;
     }
     case 'shelf': {
-      // goods a construction site is waiting for stay in hand and go to the warehouse instead
+      // goods a construction site is waiting for, and the reserve of workshop inputs, go to the warehouse instead
       const keep: Record<string, number> = {};
+      const reserve = consumedItems(s);
       for (const it of bagKeys(h.carry)) {
-        const k = Math.min(h.carry[it], siteDemand(s, it));
+        const short = reserve.has(it) ? Math.max(0, WORKSHOP_RESERVE - bagCount(s.warehouse, it)) : 0;
+        const k = Math.min(h.carry[it], siteDemand(s, it) + short);
         if (k > 0) { keep[it] = k; bagAdd(h.carry, it, -k); }
       }
       fillShelf(h.carry, s.shelf, shelfCap(s));

@@ -81,13 +81,13 @@ function paint(ctx: Ctx): void {
 function crust(ctx: Ctx, x0: number, x1: number, y: number): void {
   const pts: number[] = [x0, y];
   for (let x = x0; x <= x1; x += 0.5) {
-    const d = 0.35 + hash2(Math.round(x * 2), y, 11) * 0.55 + (x === x0 || x === x1 ? -0.2 : 0);
+    const d = 0.55 + hash2(Math.round(x * 2), y, 11) * 0.75 + (x === x0 || x === x1 ? -0.4 : 0);
     pts.push(x, y + d);
   }
   pts.push(x1, y);
   poly(ctx, pts);
-  const g = ctx.createLinearGradient(0, y, 0, y + 1);
-  g.addColorStop(0, '#4c4870'); g.addColorStop(1, '#2c2650');
+  const g = ctx.createLinearGradient(0, y, 0, y + 1.3);
+  g.addColorStop(0, '#57527c'); g.addColorStop(0.5, '#3a3462'); g.addColorStop(1, '#241e48');
   ctx.fillStyle = g; ctx.fill();
   ctx.strokeStyle = OUT; ctx.lineWidth = 0.05; ctx.stroke();
   // strata lines + a few glinting bits
@@ -108,6 +108,18 @@ function regolith(ctx: Ctx, x: number, y: number): void {
     ell(ctx, cx, cy, r, r * 0.7);
     ctx.fillStyle = h < 0.5 ? 'rgba(255,255,255,0.07)' : 'rgba(70,80,120,0.06)';
     ctx.fill();
+  }
+  // occasional big crater
+  if (hash2(x, y, 77) < 0.035) {
+    const cx = x + 0.5, cy = y + 0.5, r = 0.55 + hash2(x, y, 78) * 0.25;
+    ell(ctx, cx, cy, r, r * 0.6); ctx.fillStyle = '#a7b2c6'; ctx.fill();
+    ell(ctx, cx, cy - r * 0.06, r * 0.84, r * 0.46); ctx.fillStyle = '#97a3ba'; ctx.fill();
+    ell(ctx, cx + r * 0.1, cy + r * 0.05, r * 0.5, r * 0.25); ctx.fillStyle = '#a1adc3'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.6, 0, 0.1, Math.PI - 0.1);
+    ctx.strokeStyle = '#dbe2ed'; ctx.lineWidth = 0.05; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.6, 0, Math.PI + 0.3, Math.PI * 2 - 0.3);
+    ctx.strokeStyle = '#8a96ad'; ctx.lineWidth = 0.035; ctx.stroke();
+    return;
   }
   // crater
   if (hash2(x, y, 1) < 0.22) {

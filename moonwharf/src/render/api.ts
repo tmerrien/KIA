@@ -10,4 +10,4 @@ export interface Renderer {
   screenToTile(cam: Camera, px: number, py: number): { x: number; y: number }; // css px -> integer tile
 }
 
-export declare function createRenderer(canvas: HTMLCanvasElement): Renderer;
+export { createRenderer } from './renderer'; // createRenderer(canvas: HTMLCanvasElement): Renderer

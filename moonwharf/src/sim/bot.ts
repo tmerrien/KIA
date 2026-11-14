@@ -1,7 +1,7 @@
 // Scripted greedy player used by the playthrough and balance tests (not used by the game itself).
 // Strategy: always work towards the cheapest available tech. Start its site for free, pour every coin into it,
 // gather / craft the items it needs, and otherwise make money by gathering, crafting and selling at the stall.
-import { BUILDINGS, ITEMS, NODES, NODE_FOR_ITEM, TECHS, TECH_BY_ID, TUNING, WORKSHOP_FOR_ITEM, type TechDef } from './content';
+import { BUILDINGS, ITEMS, NODES, NODE_FOR_ITEM, TECHS, TUNING, WORKSHOP_FOR_ITEM, type TechDef } from './content';
 import { buyTech, pour, siteNeeds, takeFromWarehouse } from './economy';
 import { canAfford, effects, era, techStatus } from './effects';
 import { orderPlayer } from './player';
@@ -10,8 +10,8 @@ import { tick } from './state';
 import { bagCount, bagKeys, bagTotal } from './util';
 import type { GameEvent, GameState, ItemId, Ref } from './types';
 
-export interface BotMemory { hold: number; wait: number; take: { item: ItemId; n: number } | null; log: string[]; noStall: boolean }
-export function newBotMemory(): BotMemory { return { hold: 0, wait: 0, take: null, log: [], noStall: false }; }
+export interface BotMemory { hold: number; wait: number; take: { item: ItemId; n: number } | null; log: string[]; noStall: boolean; hoard: Record<ItemId, number> | null }
+export function newBotMemory(): BotMemory { return { hold: 0, wait: 0, take: null, log: [], noStall: false, hoard: null }; }
 
 const STALL: Ref = { k: 'bld', id: 'stall' };
 const WAREHOUSE: Ref = { k: 'bld', id: 'warehouse' };
@@ -55,21 +55,26 @@ function gather(s: GameState, mem: BotMemory, item: ItemId): boolean {
 }
 
 function unload(s: GameState, holding = false): boolean {
-  if (!holding && bagTotal(s.shelf) < effects(s).shelf) return go(s, STALL);
+  if (holding) return false;
+  if (bagTotal(s.shelf) < effects(s).shelf) return go(s, STALL);
   if (s.built.warehouse) return go(s, WAREHOUSE);
   return false;
 }
 
-/** Try to make progress towards `qty` more of `item`. Returns true if an order was issued. */
-function produce(s: GameState, mem: BotMemory, item: ItemId, qty: number, depth = 0, store = false): boolean {
+/**
+ * Try to make progress towards `qty` more of `item`. Returns true if an order was issued.
+ * While hoarding for a tech bought with items (mem.hoard), the bot never visits the warehouse (that would deposit
+ * the hoard) and never loads hoarded goods into a workshop; it lets porters bring inputs instead.
+ */
+function produce(s: GameState, mem: BotMemory, item: ItemId, qty: number, depth = 0): boolean {
   if (depth > 4) return false;
   if (!WORKSHOP_FOR_ITEM[item]) return gather(s, mem, item);
   const wid = WORKSHOP_FOR_ITEM[item];
   const w = s.workshops[wid];
   if (!w) return false;
-  if (w.output > 0 && room(s) > 0 && !(store && depth === 0)) return go(s, { k: 'bld', id: wid });
+  if (w.output > 0 && room(s) > 0) return go(s, { k: 'bld', id: wid });
   const r = BUILDINGS[wid].recipe!;
-  const batches = Math.max(1, Math.min(6, qty - (store && depth === 0 ? 0 : w.output) - (w.busy ? 1 : 0)));
+  const batches = Math.max(1, Math.min(6, qty - w.output - (w.busy ? 1 : 0)));
   for (const it of bagKeys(r.in)) {
     const inW = bagCount(w.input, it);
     const want = Math.min(TUNING.workshopInputCap, r.in[it] * batches);
@@ -79,12 +84,23 @@ function produce(s: GameState, mem: BotMemory, item: ItemId, qty: number, depth 
       return go(s, { k: 'bld', id: wid });
     }
     if (bagCount(s.warehouse, it) > 0 && s.built.warehouse && carried < want - inW) {
-      mem.take = { item: it, n: want - inW - carried };
-      return go(s, WAREHOUSE);
+      if (mem.hoard) {
+        if (s.helpers.some((h) => h.kind === 'porter') && inW >= r.in[it]) continue;
+        if (s.helpers.some((h) => h.kind === 'porter')) { mem.wait = 0.5; return true; }
+      } else {
+        mem.take = { item: it, n: want - inW - carried };
+        return go(s, WAREHOUSE);
+      }
     }
     if (inW < r.in[it] || !w.busy) {
-      if (produce(s, mem, it, Math.ceil((want - inW - carried) / 1), depth + 1)) return true;
+      if (produce(s, mem, it, want - inW - carried, depth + 1)) return true;
     }
+  }
+  if (mem.hoard && (w.busy || w.output > 0)) {
+    // camp next to the workshop and grab each finished item before a porter does
+    if (!s.player.target || s.player.target.k !== 'bld' || s.player.target.id !== wid) return go(s, { k: 'bld', id: wid });
+    mem.wait = 0.3;
+    return true;
   }
   return false;
 }
@@ -94,6 +110,22 @@ function makeMoney(s: GameState, mem: BotMemory, goalItems: Record<ItemId, numbe
   for (const id of Object.keys(s.workshops).sort()) {
     if (goalItems[BUILDINGS[id].recipe!.out]) continue;
     if (s.workshops[id].output > 0 && room(s) > 0) return go(s, { k: 'bld', id });
+  }
+  // fetch workshop inputs from the warehouse
+  if (s.built.warehouse && room(s) > 0) {
+    const shops = Object.keys(s.workshops).sort((a, b) => ITEMS[BUILDINGS[b].recipe!.out].price - ITEMS[BUILDINGS[a].recipe!.out].price);
+    const wants: [ItemId, number][] = [];
+    for (const id of shops) {
+      const r = BUILDINGS[id].recipe!;
+      for (const it of bagKeys(r.in)) {
+        const d = TUNING.workshopInputCap - bagCount(s.workshops[id].input, it) - bagCount(s.satchel, it);
+        if (d >= Math.max(r.in[it], 4) && bagCount(s.warehouse, it) >= r.in[it]) wants.push([it, Math.min(d, s.warehouse[it])]);
+      }
+    }
+    if (wants.length) {
+      if (!isAdjacent(s, WAREHOUSE)) return go(s, WAREHOUSE);
+      for (const [it, n] of wants) if (room(s) > 0) takeFromWarehouse(s, it, n);
+    }
   }
   // feed workshops whose input we carry
   for (const id of Object.keys(s.workshops).sort()) {
@@ -165,13 +197,14 @@ export function botDecide(s: GameState, mem: BotMemory): void {
       const shelfRoom = effects(s).shelf - bagTotal(s.shelf);
       const useful = (it: ItemId) => Object.keys(s.workshops).some((w) => BUILDINGS[w].recipe!.in[it]);
       if (!holding && bagKeys(s.satchel).some((it) => !useful(it)) && shelfRoom >= bagTotal(s.satchel)) { go(s, STALL); return; }
-      mem.noStall = true;
+      mem.noStall = true; mem.hoard = items;
       try {
-        for (const it of bagKeys(items)) {
+        // most valuable first: small, pricey items take satchel space first, bulk fills the rest
+        for (const it of bagKeys(items).sort((a, b) => ITEMS[b].price - ITEMS[a].price)) {
           const missing = items[it] - have(s, it);
           if (missing > 0 && produce(s, mem, it, missing)) return;
         }
-      } finally { mem.noStall = false; }
+      } finally { mem.noStall = false; mem.hoard = null; }
       mem.wait = 0.5;
       return;
     }
@@ -206,6 +239,5 @@ export function runBot(s: GameState, maxSeconds: number, until: (s: GameState) =
     for (const id of Object.keys(s.tech)) if (res.techAt[id] === undefined) res.techAt[id] = s.time;
   }
   res.finalTime = s.time;
-  void TECH_BY_ID;
   return res;
 }

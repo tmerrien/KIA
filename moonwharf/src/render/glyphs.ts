@@ -127,7 +127,7 @@ export function drawItem(ctx: Ctx, id: string, x: number, y: number, r: number, 
       }
       ctx.closePath();
       f(col);
-      ell(ctx, 0, 0, 0.32 * r, 0.32 * r); f('#3a3550', r * 0.1);
+      ell(ctx, 0, 0, 0.32 * r, 0.32 * r); f('#3a3550');
       ell(ctx, -0.25 * r, -0.35 * r, 0.14 * r, 0.1 * r); ctx.fillStyle = shade(col, 0.5); ctx.fill();
       break;
     }

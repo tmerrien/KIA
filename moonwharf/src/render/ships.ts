@@ -117,7 +117,7 @@ export function drawSkeleton(ctx: Ctx, x: number, y: number, s: number, f: numbe
   // keel
   ctx.beginPath(); ctx.moveTo(-h * 0.9, D * 0.85); ctx.quadraticCurveTo(0, D * 1.08, h * 0.9, D * 0.55); ctx.quadraticCurveTo(h * 1.05, D * 0.1, h * 1.1, -0.3);
   ctx.strokeStyle = OUT; ctx.lineWidth = 0.16; ctx.stroke();
-  ctx.strokeStyle = '#a8774d'; ctx.lineWidth = 0.09; ctx.stroke();
+  ctx.strokeStyle = '#d9a46a'; ctx.lineWidth = 0.09; ctx.stroke();
   // ribs appear with progress
   const n = 9, shown = Math.max(1, Math.round(n * Math.min(1, f * 1.4)));
   for (let i = 0; i < shown; i++) {
@@ -125,7 +125,7 @@ export function drawSkeleton(ctx: Ctx, x: number, y: number, s: number, f: numbe
     const bottom = D * (1 - Math.pow(Math.abs(px) / (h * 1.1), 2) * 0.45);
     ctx.beginPath(); ctx.moveTo(px - 0.05, -0.1); ctx.quadraticCurveTo(px + 0.06, bottom * 0.6, px, bottom);
     ctx.strokeStyle = OUT; ctx.lineWidth = 0.12; ctx.stroke();
-    ctx.strokeStyle = '#c4935f'; ctx.lineWidth = 0.06; ctx.stroke();
+    ctx.strokeStyle = '#e8bb84'; ctx.lineWidth = 0.065; ctx.stroke();
   }
   // planking creeps up from the keel in the second half
   if (f > 0.5) {

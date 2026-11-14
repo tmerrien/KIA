@@ -1,6 +1,7 @@
 // People of the wharf: the player, hired hands (dockhands, porters) and visiting ship crews.
 import type { Mover, Player, Helper, Crew, Bag } from '../sim/types';
 import { drawItem } from './glyphs';
+import { ITEMS } from './content';
 import { Ctx, OUT, rr, ell, fs, line, shade } from './util';
 
 export const CREW_COLORS = ['#e2553f', '#3fa7b8', '#e8b33a', '#9a6ae0', '#e87a9f', '#5fbf6a', '#4f7fe0', '#d9783a'];
@@ -156,5 +157,4 @@ export function drawCrew(ctx: Ctx, c: Crew, t: number): void {
   drawPerson(ctx, c.x + 0.5, c.y + 0.78, c.dir, walkPhase(c), t, look, c.bought);
 }
 
-import { ITEMS } from './content';
 function colorOf(id: string): string { return ITEMS[id]?.color ?? '#cccccc'; }

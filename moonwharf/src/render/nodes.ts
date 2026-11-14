@@ -25,21 +25,29 @@ export function drawNode(ctx: Ctx, n: ResourceNode, idx: number, t: number): voi
   const def = NODEDEFS[n.kind];
   switch (n.kind) {
     case 'ore': {
-      shadow(ctx, cx, cy + 0.3, 0.45, 0.14);
-      rock(ctx, cx, cy + 0.05, 0.44, idx, '#6f7894');
+      shadow(ctx, cx, cy + 0.3, 0.48, 0.15);
+      rock(ctx, cx, cy + 0.05, 0.47, idx, '#6c7592');
+      // ore veins: bright streaks through the rock (dull once mined out)
       const max = def?.max ?? 3, k = clamp(Math.round(n.amount), 0, max);
-      const slots = [[-0.18, -0.08], [0.16, -0.18], [0.06, 0.14]];
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(cx, cy + 0.05, 0.4, 0.3, 0, 0, Math.PI * 2); ctx.clip();
+      ctx.strokeStyle = k > 0 ? '#9fe3ff' : '#59617c'; ctx.lineWidth = 0.045;
+      ctx.beginPath(); ctx.moveTo(cx - 0.4, cy + 0.12); ctx.lineTo(cx - 0.15, cy - 0.02); ctx.lineTo(cx + 0.05, cy + 0.08); ctx.lineTo(cx + 0.4, cy - 0.12);
+      ctx.moveTo(cx - 0.2, cy - 0.3); ctx.lineTo(cx - 0.05, cy - 0.1); ctx.stroke();
+      ctx.restore();
+      const slots = [[-0.2, -0.1], [0.18, -0.2], [0.08, 0.14]];
       for (let i = 0; i < slots.length; i++) {
         const [ox, oy] = slots[i];
+        const x = cx + ox, y = cy + oy, q = 1.3;
         if (i < k) {
-          poly(ctx, [cx + ox - 0.11, cy + oy + 0.06, cx + ox - 0.06, cy + oy - 0.1, cx + ox + 0.08, cy + oy - 0.11, cx + ox + 0.12, cy + oy + 0.04, cx + ox, cy + oy + 0.11]);
-          fs(ctx, '#bfe9ff', LW * 0.8);
-          poly(ctx, [cx + ox - 0.06, cy + oy - 0.1, cx + ox + 0.08, cy + oy - 0.11, cx + ox + 0.02, cy + oy - 0.01]);
+          poly(ctx, [x - 0.11 * q, y + 0.06 * q, x - 0.06 * q, y - 0.1 * q, x + 0.08 * q, y - 0.11 * q, x + 0.12 * q, y + 0.04 * q, x, y + 0.11 * q]);
+          fs(ctx, '#aee6ff', LW * 0.8);
+          poly(ctx, [x - 0.06 * q, y - 0.1 * q, x + 0.08 * q, y - 0.11 * q, x + 0.02 * q, y - 0.01 * q]);
           ctx.fillStyle = '#ffffff'; ctx.fill();
           const tw = Math.sin(t * 2.2 + idx * 1.7 + i * 2.1);
-          if (tw > 0.6) star4(ctx, cx + ox + 0.08, cy + oy - 0.1, 0.1 * (tw - 0.6) * 2.5, '#ffffff');
+          if (tw > 0.5) star4(ctx, x + 0.1, y - 0.13, 0.13 * (tw - 0.5) * 2, '#ffffff');
         } else {
-          ell(ctx, cx + ox, cy + oy, 0.07, 0.05); ctx.fillStyle = '#535b75'; ctx.fill();
+          ell(ctx, x, y, 0.08, 0.06); ctx.fillStyle = '#4c536c'; ctx.fill();
         }
       }
       break;
@@ -143,35 +151,41 @@ export function drawNode(ctx: Ctx, n: ResourceNode, idx: number, t: number): voi
       break;
     }
     case 'wreck': {
-      shadow(ctx, cx, cy + 0.3, 0.55, 0.14);
-      // tilted hull fragment
+      shadow(ctx, cx, cy + 0.32, 0.62, 0.15);
+      // half-buried bow of an old hull, tilted on the regolith
       ctx.save();
-      ctx.translate(cx - 0.05, cy + 0.15);
-      ctx.rotate(-0.18);
+      ctx.translate(cx - 0.08, cy + 0.18);
+      ctx.rotate(-0.22);
       ctx.beginPath();
-      ctx.moveTo(-0.5, -0.05); ctx.quadraticCurveTo(-0.45, 0.25, 0.0, 0.25); ctx.quadraticCurveTo(0.4, 0.24, 0.48, -0.1);
-      ctx.lineTo(0.3, -0.15); ctx.lineTo(0.18, -0.02); ctx.lineTo(-0.05, -0.12); ctx.lineTo(-0.2, 0.0); ctx.lineTo(-0.35, -0.1);
+      ctx.moveTo(-0.6, -0.12);
+      ctx.quadraticCurveTo(-0.55, 0.2, -0.05, 0.22);
+      ctx.quadraticCurveTo(0.45, 0.22, 0.62, -0.3);           // bow tip
+      ctx.lineTo(0.4, -0.2); ctx.lineTo(0.28, -0.3); ctx.lineTo(0.12, -0.12); ctx.lineTo(-0.05, -0.24); ctx.lineTo(-0.2, -0.08); ctx.lineTo(-0.38, -0.2);
       ctx.closePath();
       fs(ctx, '#6b4a35');
-      ctx.fillStyle = '#4c3324'; ctx.fillRect(-0.45, 0.08, 0.9, 0.04);
+      ctx.save(); ctx.clip();
+      ctx.strokeStyle = '#4c3324'; ctx.lineWidth = 0.025;
+      for (const yy of [-0.04, 0.06, 0.15]) { ctx.beginPath(); ctx.moveTo(-0.7, yy); ctx.lineTo(0.7, yy - 0.1); ctx.stroke(); }
+      ctx.fillStyle = '#c9a14a'; ctx.fillRect(-0.7, -0.1, 1.4, 0.04);
       ctx.restore();
-      // ribs sticking up
-      for (const [ox, hgt] of [[-0.28, 0.42], [-0.08, 0.55], [0.14, 0.46]] as [number, number][]) {
-        ctx.beginPath(); ctx.moveTo(cx + ox, cy + 0.15); ctx.quadraticCurveTo(cx + ox - 0.12, cy - hgt * 0.5, cx + ox + 0.04, cy + 0.15 - hgt);
-        ctx.strokeStyle = OUT; ctx.lineWidth = 0.1; ctx.stroke();
-        ctx.strokeStyle = '#8f6a4c'; ctx.lineWidth = 0.05; ctx.stroke();
+      // brass porthole
+      ell(ctx, -0.3, 0.04, 0.07, 0.065); fs(ctx, '#3a3348', 0.035, '#c9a14a');
+      ctx.restore();
+      // broken ribs sticking up
+      for (const [ox, hgt] of [[-0.3, 0.5], [-0.08, 0.66], [0.16, 0.52]] as [number, number][]) {
+        ctx.beginPath(); ctx.moveTo(cx + ox, cy + 0.12); ctx.quadraticCurveTo(cx + ox - 0.15, cy - hgt * 0.5, cx + ox + 0.05, cy + 0.12 - hgt);
+        ctx.strokeStyle = OUT; ctx.lineWidth = 0.11; ctx.stroke();
+        ctx.strokeStyle = '#9a7252'; ctx.lineWidth = 0.055; ctx.stroke();
       }
       // salvageable scrap plates = stock
       const max = def?.max ?? 4, k = clamp(Math.round(n.amount), 0, max);
-      const pos = [[0.28, 0.25], [0.12, 0.33], [-0.22, 0.3], [0.36, 0.08]];
+      const pos = [[0.32, 0.3], [0.1, 0.38], [-0.28, 0.36], [0.44, 0.1]];
       for (let i = 0; i < k; i++) {
         const [ox, oy] = pos[i];
-        poly(ctx, [cx + ox - 0.12, cy + oy, cx + ox - 0.06, cy + oy - 0.1, cx + ox + 0.11, cy + oy - 0.07, cx + ox + 0.1, cy + oy + 0.05]);
-        fs(ctx, i % 2 ? '#c4935f' : '#b08560', 0.035);
-        ell(ctx, cx + ox, cy + oy - 0.03, 0.02, 0.02); ctx.fillStyle = '#5a3a26'; ctx.fill();
+        poly(ctx, [cx + ox - 0.13, cy + oy, cx + ox - 0.07, cy + oy - 0.11, cx + ox + 0.12, cy + oy - 0.08, cx + ox + 0.11, cy + oy + 0.05]);
+        fs(ctx, i % 2 ? '#d0a070' : '#b98a62', 0.035);
+        ell(ctx, cx + ox, cy + oy - 0.03, 0.022, 0.022); ctx.fillStyle = '#5a3a26'; ctx.fill();
       }
-      // a brass porthole ring
-      ell(ctx, cx - 0.26, cy + 0.1, 0.07, 0.06); ctx.strokeStyle = '#c9a14a'; ctx.lineWidth = 0.035; ctx.stroke();
       break;
     }
   }

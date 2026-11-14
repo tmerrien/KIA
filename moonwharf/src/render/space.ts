@@ -18,7 +18,7 @@ export class Space {
       for (let i = 0; i < n; i++) stars.push({ x: R() * TILE, y: R() * TILE, r: rmin + R() * (rmax - rmin), ph: R() * 6.28, c: STAR_COLORS[(R() * STAR_COLORS.length) | 0], big: R() < bigP });
       return { f, stars };
     };
-    this.layers = [mk(140, 0.08, 0.4, 0.9, 0), mk(70, 0.22, 0.6, 1.2, 0.08), mk(26, 0.45, 0.9, 1.6, 0.35)];
+    this.layers = [mk(260, 0.08, 0.5, 1.1, 0), mk(110, 0.22, 0.8, 1.5, 0.1), mk(34, 0.45, 1.0, 1.8, 0.4)];
     // nebula: soft blobs painted once to a small canvas, wrapped so it tiles seamlessly
     const N = 512;
     this.nebula = document.createElement('canvas');
