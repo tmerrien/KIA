@@ -1,0 +1,7 @@
+{
+ "ore":     {"name":"Moonstone vein","gives":"ore","max":3,"regrow":10,"work":0.9},
+ "crystal": {"name":"Star-crystal cluster","gives":"crystal","max":2,"regrow":16,"work":1.2},
+ "moss":    {"name":"Glowmoss bed","gives":"moss","crop":true,"grow":18,"yield":3,"work":0.7,"plantWork":0.5},
+ "ice":     {"name":"Ice seep","gives":"ice","infinite":true,"work":1.0},
+ "wreck":   {"name":"Old wreck","gives":"scrap","max":4,"regrow":12,"work":1.1}
+}

@@ -1,0 +1,80 @@
+{
+ "ore": {
+  "name": "Moonstone ore",
+  "price": 3,
+  "tier": 0,
+  "color": "#9aa3b5"
+ },
+ "moss": {
+  "name": "Glowmoss",
+  "price": 3,
+  "tier": 0,
+  "color": "#7fe0a8"
+ },
+ "ice": {
+  "name": "Ice",
+  "price": 2,
+  "tier": 0,
+  "color": "#bfe6ff"
+ },
+ "crystal": {
+  "name": "Star-crystal",
+  "price": 6,
+  "tier": 0,
+  "color": "#c9a6ff"
+ },
+ "scrap": {
+  "name": "Hull scrap",
+  "price": 4,
+  "tier": 0,
+  "color": "#b08560"
+ },
+ "ingot": {
+  "name": "Moonsteel ingot",
+  "price": 20,
+  "tier": 1,
+  "color": "#d7dce6"
+ },
+ "sailcloth": {
+  "name": "Sailcloth",
+  "price": 22,
+  "tier": 1,
+  "color": "#f2e6c8"
+ },
+ "ration": {
+  "name": "Crew ration",
+  "price": 18,
+  "tier": 1,
+  "color": "#e8b86a"
+ },
+ "fuelcell": {
+  "name": "Fuel cell",
+  "price": 40,
+  "tier": 1,
+  "color": "#a98bff"
+ },
+ "tools": {
+  "name": "Tool kit",
+  "price": 55,
+  "tier": 1,
+  "color": "#c97b4a"
+ },
+ "rigging": {
+  "name": "Rigging",
+  "price": 120,
+  "tier": 2,
+  "color": "#d9c08a"
+ },
+ "engine": {
+  "name": "Engine part",
+  "price": 180,
+  "tier": 2,
+  "color": "#7f8ea8"
+ },
+ "solarsail": {
+  "name": "Solar sail",
+  "price": 650,
+  "tier": 3,
+  "color": "#ffd76a"
+ }
+}
