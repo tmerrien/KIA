@@ -10,43 +10,64 @@ const WALL_TOP = '#7f88a3', WALL_FRONT = '#545b7a';
 const PLANKS = ['#a2704a', '#ab7a51', '#976541', '#a87650'];
 const PIER_PLANKS = ['#9a6a45', '#a6744c', '#8f603d'];
 
-export class Terrain {
-  private canvas: HTMLCanvasElement | null = null;
-  private q = 0;
+// The terrain is cached in CHUNK x CHUNK tile pieces, built lazily only when visible, so memory and draw
+// cost scale with the screen rather than the map. The cache scale follows zoom*dpr; while the zoom is
+// changing (pinch) the old chunks are stretched and only rebuilt once the zoom settles.
+const CHUNK = 8;
+const MAX_CHUNKS = 40;
 
-  private build(q: number): void {
-    const W = MAP.width + PAD * 2, H = MAP.height + PAD * 2;
-    const c = this.canvas ?? document.createElement('canvas');
-    c.width = Math.ceil(W * q);
-    c.height = Math.ceil(H * q);
+export class Terrain {
+  private chunks = new Map<string, { c: HTMLCanvasElement; used: number }>();
+  private q = 0;
+  private pendingQ = 0;
+  private settle = 0;
+  private frame = 0;
+
+  private build(cx: number, cy: number): HTMLCanvasElement {
+    const q = this.q;
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(CHUNK * q);
+    c.height = Math.ceil(CHUNK * q);
     const ctx = c.getContext('2d')!;
-    ctx.setTransform(q, 0, 0, q, PAD * q, PAD * q);
-    ctx.clearRect(-PAD, -PAD, W, H);
-    paint(ctx);
-    this.canvas = c;
-    this.q = q;
+    const x0 = cx * CHUNK, y0 = cy * CHUNK;
+    ctx.setTransform(q, 0, 0, q, -x0 * q, -y0 * q);
+    ctx.beginPath(); ctx.rect(x0, y0, CHUNK, CHUNK); ctx.clip();
+    paint(ctx, x0 - 2, y0 - 2, x0 + CHUNK + 2, y0 + CHUNK + 3);
+    return c;
   }
 
-  // world transform must be active (1 unit = 1 tile)
-  draw(ctx: Ctx, camX: number, camY: number, viewW: number, viewH: number, pxPerTile: number): void {
-    let q = Math.pow(2, Math.round(Math.log2(Math.max(4, pxPerTile)) * 4) / 4);
-    const maxQ = Math.sqrt(14e6 / ((MAP.width + 2 * PAD) * (MAP.height + 2 * PAD)));
-    q = Math.min(q, maxQ);
-    if (Math.abs(q - this.q) > 1e-6 || !this.canvas) this.build(q);
-    const c = this.canvas!;
-    const x0 = Math.max(-PAD, Math.floor(camX)), y0 = Math.max(-PAD, Math.floor(camY));
-    const x1 = Math.min(MAP.width + PAD, Math.ceil(camX + viewW)), y1 = Math.min(MAP.height + PAD, Math.ceil(camY + viewH));
-    if (x1 <= x0 || y1 <= y0) return;
-    ctx.drawImage(c, (x0 + PAD) * q, (y0 + PAD) * q, (x1 - x0) * q, (y1 - y0) * q, x0, y0, x1 - x0, y1 - y0);
+  // world transform must be active (1 unit = 1 tile). pxPerTile = device px per tile.
+  draw(ctx: Ctx, camX: number, camY: number, viewW: number, viewH: number, pxPerTile: number, dt = 0): void {
+    this.frame++;
+    const want = Math.min(Math.round(pxPerTile * 100) / 100, 160);
+    if (!this.q) this.q = want;
+    if (Math.abs(want - this.pendingQ) > 1e-6) { this.pendingQ = want; this.settle = 0; }
+    else this.settle += dt;
+    if (Math.abs(this.q - this.pendingQ) > 1e-6 && (this.settle > 0.2 || dt === 0)) { this.q = this.pendingQ; this.chunks.clear(); }
+    const cx0 = Math.floor(Math.max(-PAD, camX) / CHUNK), cy0 = Math.floor(Math.max(-PAD, camY) / CHUNK);
+    const cx1 = Math.floor(Math.min(MAP.width + PAD, camX + viewW) / CHUNK), cy1 = Math.floor(Math.min(MAP.height + PAD, camY + viewH) / CHUNK);
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+      const key = cx + ',' + cy;
+      let ch = this.chunks.get(key);
+      if (!ch) { ch = { c: this.build(cx, cy), used: 0 }; this.chunks.set(key, ch); }
+      ch.used = this.frame;
+      ctx.drawImage(ch.c, cx * CHUNK, cy * CHUNK, CHUNK, CHUNK);
+    }
+    if (this.chunks.size > MAX_CHUNKS) {
+      const old = [...this.chunks.entries()].sort((a, b) => a[1].used - b[1].used);
+      for (let i = 0; i < old.length - MAX_CHUNKS; i++) this.chunks.delete(old[i][0]);
+    }
   }
 }
 
-function paint(ctx: Ctx): void {
+// paint tiles in [ax,bx) x [ay,by) (clamped to the map); the caller clips to its chunk
+function paint(ctx: Ctx, ax: number, ay: number, bx: number, by: number): void {
   const W = MAP.width, H = MAP.height;
+  const X0 = Math.max(0, ax), Y0 = Math.max(0, ay), X1 = Math.min(W, bx), Y1 = Math.min(H, by);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   // 1. rocky underside hanging below any land edge that faces open space
-  for (let y = 0; y < H; y++) {
+  for (let y = Math.max(0, ay - 2); y < Math.min(H, by); y++) {
     let x = 0;
     while (x < W) {
       const land = (xx: number) => { const c = tileAt(xx, y); return (c === '#' || c === '.' || c === '=') && tileAt(xx, y + 1) === ' '; };
@@ -58,24 +79,24 @@ function paint(ctx: Ctx): void {
   }
   // 2. regolith ground under everything solid
   ctx.fillStyle = REG;
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
     const c = tileAt(x, y);
     if (c === '.' || c === '#' || c === '=') ctx.fillRect(x - 0.01, y - 0.01, 1.02, 1.02);
   }
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (tileAt(x, y) === '.') regolith(ctx, x, y);
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) if (tileAt(x, y) === '.') regolith(ctx, x, y);
   // wall shadows on regolith
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) {
     if (tileAt(x, y) !== '.') continue;
     if (tileAt(x, y - 1) === '#') { const g = ctx.createLinearGradient(0, y, 0, y + 0.45); g.addColorStop(0, 'rgba(40,40,80,0.28)'); g.addColorStop(1, 'rgba(40,40,80,0)'); ctx.fillStyle = g; ctx.fillRect(x, y, 1, 0.45); }
     if (tileAt(x - 1, y) === '#') { const g = ctx.createLinearGradient(x, 0, x + 0.3, 0); g.addColorStop(0, 'rgba(40,40,80,0.22)'); g.addColorStop(1, 'rgba(40,40,80,0)'); ctx.fillStyle = g; ctx.fillRect(x, y, 0.3, 1); }
     if (tileAt(x + 1, y) === '#') { const g = ctx.createLinearGradient(x + 1, 0, x + 0.8, 0); g.addColorStop(0, 'rgba(40,40,80,0.16)'); g.addColorStop(1, 'rgba(40,40,80,0)'); ctx.fillStyle = g; ctx.fillRect(x + 0.8, y, 0.2, 1); }
   }
   // 3. boardwalk
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (tileAt(x, y) === '=') boardwalk(ctx, x, y);
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) if (tileAt(x, y) === '=') boardwalk(ctx, x, y);
   // 4. piers
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (tileAt(x, y) === 'P') pier(ctx, x, y);
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) if (tileAt(x, y) === 'P') pier(ctx, x, y);
   // 5. rock walls, top row first so lower rows overlap correctly
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (tileAt(x, y) === '#') wallTop(ctx, x, y);
+  for (let y = Y0; y < Y1; y++) for (let x = X0; x < X1; x++) if (tileAt(x, y) === '#') wallTop(ctx, x, y);
 }
 
 function crust(ctx: Ctx, x0: number, x1: number, y: number): void {

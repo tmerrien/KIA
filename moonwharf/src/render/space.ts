@@ -35,20 +35,33 @@ export class Space {
     }
   }
 
+  private sky: HTMLCanvasElement | null = null;
+
   draw(ctx: Ctx, w: number, h: number, cam: Camera, t: number): void {
-    const g = ctx.createLinearGradient(0, 0, 0, h);
+    const cx = cam.x * cam.zoom, cy = cam.y * cam.zoom;
+    // gradient + nebula + vignette are soft, so they are composed at 1/4 resolution and stretched:
+    // one full-screen blit instead of three full-screen fills.
+    const D = 4, sw = Math.ceil(w / D), sh = Math.ceil(h / D);
+    if (!this.sky) this.sky = document.createElement('canvas');
+    const sk = this.sky;
+    if (sk.width !== sw || sk.height !== sh) { sk.width = sw; sk.height = sh; }
+    const c = sk.getContext('2d')!;
+    const g = c.createLinearGradient(0, 0, 0, sh);
     g.addColorStop(0, '#120c2c');
     g.addColorStop(0.55, '#1d1240');
     g.addColorStop(1, '#2a1553');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-    const cx = cam.x * cam.zoom, cy = cam.y * cam.zoom;
-    // nebula, slow parallax + drift
-    const NS = 1024; // drawn at 2x
-    const nx = -(((cx * 0.06 + t * 2) % NS) + NS) % NS, ny = -(((cy * 0.06) % NS) + NS) % NS;
-    ctx.globalAlpha = 0.9;
-    for (let x = nx; x < w; x += NS) for (let y = ny; y < h; y += NS) ctx.drawImage(this.nebula, x, y, NS, NS);
-    ctx.globalAlpha = 1;
+    c.fillStyle = g;
+    c.fillRect(0, 0, sw, sh);
+    const NS = 1024 / D;
+    const nx = -((((cx * 0.06 + t * 2) / D) % NS) + NS) % NS, ny = -((((cy * 0.06) / D) % NS) + NS) % NS;
+    c.globalAlpha = 0.9;
+    for (let x = nx; x < sw; x += NS) for (let y = ny; y < sh; y += NS) c.drawImage(this.nebula, x, y, NS, NS);
+    c.globalAlpha = 1;
+    const v = c.createRadialGradient(sw / 2, sh / 2, Math.min(sw, sh) * 0.4, sw / 2, sh / 2, Math.max(sw, sh) * 0.75);
+    v.addColorStop(0, 'rgba(8,4,24,0)'); v.addColorStop(1, 'rgba(8,4,24,0.45)');
+    c.fillStyle = v; c.fillRect(0, 0, sw, sh);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(sk, 0, 0, sw * D, sh * D);
     // distant ringed world
     this.planet(ctx, w * 0.78 - cx * 0.03, h * 0.12 - cy * 0.03 + 1200 * 0.03, Math.min(w, h) * 0.16);
     // stars

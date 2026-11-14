@@ -75,7 +75,7 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
     const S = z * dpr;
     ctx.setTransform(S, 0, 0, S, -cam.x * S, -cam.y * S);
     drawFleet(ctx, s, t);
-    terrain.draw(ctx, cam.x, cam.y, vw, vh, S);
+    terrain.draw(ctx, cam.x, cam.y, vw, vh, S, dt);
 
     // ground decals
     for (const id of ['drydock', 'shipyard']) drawPlatform(ctx, id, s);
@@ -127,7 +127,6 @@ export function createRenderer(canvas: HTMLCanvasElement): Renderer {
 
     // --- screen overlays
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    vignette(ctx, cw, ch);
     const W = (wx: number, wy: number): [number, number] => [(wx - cam.x) * z, (wy - cam.y) * z];
     overlays(ctx, s, W, z, t, vis);
     if (opts.selected) selectionBrackets(ctx, s, opts.selected, W, z, t);
@@ -158,14 +157,6 @@ function drawFleet(ctx: Ctx, s: GameState, t: number): void {
       drawShip(ctx, x, y, 0.62, st, t, 1);
     }
   });
-}
-
-function vignette(ctx: Ctx, w: number, h: number): void {
-  const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.45, w / 2, h / 2, Math.max(w, h) * 0.75);
-  g.addColorStop(0, 'rgba(18,10,40,0)');
-  g.addColorStop(1, 'rgba(18,10,40,0.35)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
 }
 
 function refBounds(s: GameState, r: Ref): { x: number; y: number; w: number; h: number } | null {
