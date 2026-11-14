@@ -115,9 +115,7 @@ function nodeView(s: GameState, i: number, o: Out): void {
 }
 
 function workshopFrac(progress: number, time: number): number {
-  // Sim stores progress in seconds of work done; tolerate a 0..1 fraction too.
-  if (progress <= 1 && time > 1 && progress > 0 && progress !== Math.floor(progress) && progress * time < 1) return progress;
-  return progress / time;
+  return progress / time; // sim stores seconds of work done on the current batch
 }
 
 function runBy(s: GameState): string {
