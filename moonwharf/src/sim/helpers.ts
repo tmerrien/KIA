@@ -2,7 +2,7 @@
 //
 // Dockhand job priority:
 //   0. carrying >= HELPER_CARRY            -> deposit at the warehouse
-//   1. moss beds that are ripe or empty    -> harvest (then replant) / plant
+//   1. moss beds that are empty, or ripe while the warehouse has < 40 moss -> plant / harvest (then replant)
 //   2. ore, crystal, wreck nodes with >= 2 stock whose item has < 40 in the warehouse -> gather until full/empty
 //   3. ice if the warehouse has < 40 ice   -> gather until full
 //   otherwise deposit what it carries, or idle.
@@ -132,7 +132,10 @@ function dockhandJob(s: GameState, h: Helper): HelperJob | null {
   s.nodes.forEach((n, i) => {
     if (!free(i)) return;
     const def = NODES[n.kind];
-    if (def.crop) { if (n.crop === 'ripe' || n.crop === 'empty') levels[0].push(i); }
+    if (def.crop) {
+      // plant empty beds always; harvest ripe ones while the warehouse is short of moss
+      if (n.crop === 'empty' || (n.crop === 'ripe' && bagCount(s.warehouse, def.gives) < DOCKHAND_STOCK_TARGET)) levels[0].push(i);
+    }
     else if (!def.infinite) { if (n.amount >= 2 && bagCount(s.warehouse, def.gives) < DOCKHAND_STOCK_TARGET) levels[1].push(i); }
     else if (bagCount(s.warehouse, def.gives) < DOCKHAND_STOCK_TARGET) levels[2].push(i);
   });
